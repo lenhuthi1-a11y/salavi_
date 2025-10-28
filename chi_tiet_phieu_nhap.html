@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+
+{% block title %}CHI TIẾT PHIẾU NHẬP KHO{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+
+<div class="list-container">
+ <div class="header-box">
+     <h2 style="font-size: 1em; margin: 0; font-weight: 500; letter-spacing: 1px;color: white">NHẬP KHO/CHI TIẾT PHIẾU NHẬP KHO</h2>
+
+ </div>
+</div>
+<!-- NÚT THÊM FILE NGOÀI -->
+<div style="text-align: right; margin-bottom: 15px;">
+   <button type="button" id="btnThemFile" style="
+        background-color: #ff4f81;
+        color: white;
+        padding: 10px 15px;  /* to hơn */
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        margin-right: 35px; /* thêm dòng này để dịch nút sang trái */
+
+
+   ">
+       + Thêm hàng từ file ngoài
+   </button>
+</div>
+
+<input type="file" id="file-uploader" style="display: none;" accept=".xlsx, .xls, .csv">
+<div class="container">
+ <h2 style="text-align: center; font-weight: bold; color: black; margin-bottom: 20px;">
+     PHIẾU NHẬP KHO
+</h2>
+
+<form id="phieuForm" method="post" action="{% url 'chi_tiet_phieu_nhap' phieu.id %}">
+   {% csrf_token %}
+    <!-- Khung thông tin phiếu nhập -->
+   <div class="info-box">
+     <!-- Dòng chữ Thông tin chung đặt ngoài flex các cột -->
+     <div style="font-weight:bold; color:black; margin-bottom:10px;">Thông tin chung</div>
+
+   <!-- Bao 2 cột trong 1 div flex -->
+ <div style="display:flex; gap:20px;">
+   <div class="col">
+       <label>Nguồn nhập</label>
+       <input type="text" name="nguon_nhap" value="{{ phieu.nguon_nhap }}" style="text-align:right;">
+       <label>Mã nguồn</label>
+       <input type="text" name="ma_nguon" value="{{ phieu.ma_nguon }}" style="text-align:right;">
+       <label>Số điện thoại</label>
+       <input type="text" name="sdt" value="{{ phieu.sdt }}"style="text-align:right;">
+       <label>Địa chỉ</label>
+       <input type="text" name="dia_chi" value="{{ phieu.dia_chi }}"style="text-align:right;">
+     </div>
+     <div class="col">
+       <label>Mã phiếu nhập</label>
+       <input type="text" name="ma_phieu" value="{{ phieu.ma_phieu }}"style="text-align:right;">
+       <label>Lý do nhập</label>
+         <textarea name="ly_do" rows="4" style="text-align:right;">{{ phieu.ly_do }}</textarea>
+
+      </div>
+ </div>
+</div>
+
+
+   <table id="hangTable">
+ <thead>
+   <tr>
+     <th style="width: 5%;">STT</th>
+     <th style="width: 25%;">Tên hàng hóa</th>
+     <th style="width: 15%;">Mã hàng hóa</th>
+     <th style="width: 8%;">Đơn vị tính</th>
+     <th style="width: 10%;">Đơn giá</th>
+     <th style="width: 8%;">Số lượng</th>
+     <th style="width: 10%;">Chiết khấu</th>
+     <th style="width: 14%;">Thành tiền</th>
+     <th style="width: 5%;">Xóa</th>
+   </tr>
+ </thead>
+     <tbody>
+       {% for cth in phieu.chitiet.all %}
+       <tr>
+         <td>{{ forloop.counter }}</td>
+         <td><input type="text" name="ten_hang" value="{{ cth.ten_hang }}"></td>
+         <td><input type="text" name="ma_hang" value="{{ cth.ma_hang }}"></td>
+         <td><input type="text" name="don_vi" value="{{ cth.don_vi }}"></td>
+         <td><input type="text" name="don_gia" value="{{ cth.don_gia|floatformat:"-2" }}" onblur="this.value=formatNumber(this.value)" oninput="tinhThanhTien(this)"></td>
+         <td><input type="text" name="so_luong" value="{{ cth.so_luong|floatformat:"-2" }}" oninput="tinhThanhTien(this)"></td>
+         <td><input type="text" name="chiet_khau" value="{{ cth.chiet_khau|floatformat:"-2" }}" onblur="this.value=formatPercent(this.value)" oninput="tinhThanhTien(this)"></td>
+         <td><input type="text" name="thanh_tien" value="{{ cth.thanh_tien|floatformat:"-2" }}" readonly></td>
+         <td>
+             <button class="btn-del" type="button" onclick="xoaDong(this)">
+               <i class="fas fa-trash"></i>
+             </button>
+           </td>
+       </tr>
+       {% endfor %}
+     </tbody>
+     <tfoot>
+       <tr>
+         <td colspan="7" style="text-align:right;">Tổng cộng:</td>
+         <td id="tongTien">{{ phieu.tong_tien|default:"0"|floatformat:"-2" }}</td>
+         <td></td>
+       </tr>
+     </tfoot>
+   </table>
+
+
+   <button type="button" class="btn btn-add" onclick="themDong()">+ Thêm hàng hóa</button>
+   <input type="hidden" name="tong_tien" id="tongTienInput" value="{{ phieu.tong_tien|default:0 }}">
+
+
+   <!-- Nút lưu/hủy -->
+   <div class="clearfix" style="margin-top:20px;">
+     <button type="submit" class="btn-save"> Lưu</button>
+     <button type="button" class="btn-cancel" onclick="huyPhieu()">Hủy</button>
+   </div>
+ </form>
+</div>
+<!-- Popup thêm file Excel -->
+<div id="popupFile" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 500px; background-color: #fff; border: 1px solid #ccc; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 999; border-radius: 6px;">
+ <div style="background-color:#f45a8d; padding:10px 15px; border-top-left-radius:6px; border-top-right-radius:6px; color:#fff; font-weight:bold;">
+   THÊM DANH SÁCH HÀNG HÓA TỪ FILE NGOÀI
+ </div>
+<div style="padding:20px; display:flex; flex-direction: column; gap: 15px;">
+ <div id="dropArea" style="border:2px dashed #ccc; padding:40px 20px; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+   <div style="font-size:40px; color:#4a90e2; margin-bottom:10px;">&#x2B06;</div>
+   <div>Kéo thả file vào đây</div>
+   <div style="margin:5px 0;">hoặc</div>
+   <label for="fileInput" style="padding:10px 20px; background-color:#f8b868; border-radius:4px; cursor:pointer; display:inline-block;">
+     Chọn file
+   </label>
+   <input type="file" id="fileInput" style="display:none;">
+ </div>
+
+
+ <!-- Nút Hủy sẽ ngay dưới dropArea, không bị center popup -->
+ <button type="button" class="btn-cancel" onclick="closePopup()"
+         style="background-color:#dc3545; color:#fff; padding:8px 20px; border:none; border-radius:4px; cursor:pointer; align-self: flex-end;">
+   Hủy
+ </button>
+</div>
+</div>
+<!-- CSS -->
+<style>
+/* Đã thêm CSS để căn chỉnh INPUT trong bảng */
+#hangTable input[type="text"] {
+ width: 100%;
+ padding: 4px 0; /* Đã sửa ở lần trước */ margin: 0;
+ border: none;
+ box-sizing: border-box;
+ text-align: center; /* CĂN GIỮA NỘI DUNG */
+ background: transparent;
+ font-size: 16px;
+ outline: none;
+}
+
+
+/* Riêng cột Tên hàng hóa và Mã hàng hóa nên căn trái để dễ nhập */
+#hangTable td:nth-child(2) input, /* Tên hàng hóa */
+#hangTable td:nth-child(3) input  /* Mã hàng hóa */
+{
+ text-align: left;
+ padding-left: 5px;
+}
+
+
+/* Các style gốc của bạn (đã giữ nguyên) */
+.container {
+    max-width: 750px;
+    margin: 30px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+} /* Đảm bảo chỉ có một dấu đóng */
+.info-box {
+ border: 4px solid #f45a8d;
+ background-color: #fff0f5;
+ padding: 20px;
+ border-radius: 0;
+ display: flex;
+ flex-direction: column;
+ gap: 20px;
+ margin-bottom: 20px;
+}
+.info-box .col { flex: 1; min-width: 250px; }
+.info-box label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+.info-box input, .info-box textarea {
+ width: 100%;
+ padding: 6px;
+ border: 1px solid #f5a6be;
+ font-size: 14px;
+ margin-bottom: 10px;
+ background-color: #fff8fa;
+ box-sizing: border-box;
+ border-radius: 0px;
+ text-align: center;
+}
+table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; border-radius: 0;}
+th, td { border: 1px solid #f5a6be; padding: 8px; text-align: center; vertical-align: middle; border-radius: 0;}
+th { background-color: #f45a8d; color: white; font-weight: bold; }
+tr:nth-child(even) { background-color: #fff8fa; }
+tfoot td { font-weight: bold; background-color: #fce4ec; color: #333;border-radius: 0; }
+.btn { padding: 6px 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-add { color: #fff; background-color: #f45a8d; border: 1px solid #f45a8d;border-radius: 0; }
+.btn-add:hover { background-color: #e04a7d; border-color: #e04a7d; }
+.btn-del { color: #fff; background-color: #dc3545; border: 1px solid #dc3545;border-radius: 0; font-size: 16px;  }
+.btn-del:hover { background-color: #c82333; border-color: #c82333; }
+.btn-cancel { background-color: #dc3545; color: #fff; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; float:  right;border-radius: 8px; transition: all 0.3s ease;}
+.btn-save { background-color: #004080; color: #fff; border: none; padding: 8px 20px; border-radius: 5px;  margin-left: 20px;
+; cursor: pointer; float: right;border-radius: 8px; transition: all 0.3s ease;}
+.btn-cancel:hover { background-color: #c82333;transform: scale(1.05); }
+.btn-save:hover { background-color: #003366;transform: scale(1.05); }
+td.editable { cursor: text; min-height: 20px; }
+td.editable:focus { outline: 1px solid #f45a8d; }
+.clearfix::after { content: ""; display: block; clear: both; }
+#hangTable th, #hangTable td {
+ text-transform: none;
+}
+</style>
+<!-- JS: giữ nguyên logic cũ, bao gồm thêm dòng, xóa dòng, tính thành tiền, popup file Excel, submit form -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script>
+// ===================== HÀM TIỆN ÍCH =====================
+function cleanNumber(str){
+ if(!str) return 0;
+ return parseFloat(str.toString().replace(/\./g,'').replace('%','')) || 0;
+}
+function formatNumber(num){
+ if(!num) return '';
+ let n = parseFloat(num);
+ return n.toLocaleString('vi-VN', {maximumFractionDigits: 0});
+}
+function formatPercent(num){
+ if(!num) return '';
+ return cleanNumber(num) + '%';
+}
+
+
+// ===================== HÀM THÊM / XÓA DÒNG (ĐÃ SỬA HOÀN TOÀN) =====================
+function themDong(){
+  const tbody = document.querySelector('#hangTable tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td></td> <td><input type="text" name="ten_hang"></td>
+    <td><input type="text" name="ma_hang"></td>
+    <td><input type="text" name="don_vi"></td>
+    <td><input type="text" name="don_gia" onblur="this.value=formatNumber(this.value)" oninput="tinhThanhTien(this)"></td>
+    <td><input type="text" name="so_luong" oninput="tinhThanhTien(this)"></td>
+    <td><input type="text" name="chiet_khau" onblur="this.value=formatPercent(this.value)" oninput="tinhThanhTien(this)"></td>
+    <td><input type="text" name="thanh_tien" readonly></td>
+    <td>
+      <button class="btn-del" type="button" onclick="xoaDong(this)">
+        <i class="fas fa-trash"></i> </button>
+    </td>
+  `;
+  tbody.appendChild(row);
+
+  // GỌI HÀM NÀY ĐỂ TỰ ĐỘNG HIỆN STT TIẾP THEO
+  capNhatSTT();
+
+  // Tính toán ban đầu (dù là 0) để khởi tạo giá trị
+  tinhThanhTien(row.querySelector('[name="don_gia"]'));
+}
+
+
+function xoaDong(btn){
+ btn.closest('tr').remove();
+ capNhatSTT();
+ tinhTong();
+}
+
+
+function capNhatSTT(){
+ const rows = document.querySelectorAll('#hangTable tbody tr');
+ rows.forEach((row,i)=>row.cells[0].textContent=i+1);
+}
+
+
+// ===================== TÍNH THÀNH TIỀN =====================
+function tinhThanhTien(input){
+ const row = input.closest('tr');
+ const donGia = cleanNumber(row.querySelector('[name="don_gia"]').value);
+ const soLuong = cleanNumber(row.querySelector('[name="so_luong"]').value);
+ const chietKhau = cleanNumber(row.querySelector('[name="chiet_khau"]').value || 0);
+ const thanhTien = donGia*soLuong*(1-chietKhau/100);
+ row.querySelector('[name="thanh_tien"]').value = formatNumber(thanhTien);
+ tinhTong();
+}
+function formatNumber(num){
+ if (num === null || num === undefined) return '0';
+ return Number(num).toLocaleString('vi-VN', {maximumFractionDigits: 0});
+}
+function tinhTong(){
+ let tong = 0;
+ document.querySelectorAll('[name="thanh_tien"]').forEach(i => {
+   tong += cleanNumber(i.value); // ✅ dùng cleanNumber để bỏ . và %
+ });
+
+
+ // Hiển thị Tổng cộng với dấu . theo chuẩn Việt Nam
+ document.getElementById('tongTien').textContent = formatNumber(tong);
+
+
+ // Lưu giá trị thực (không dấu .) vào input ẩn để gửi server
+ document.getElementById('tongTienInput').value = tong;
+}
+
+
+// Hàm định dạng số với dấu . và không làm tròn decimal
+function formatNumber(num){
+ if (typeof num !== 'number') num = parseFloat(num) || 0;
+ // Format số nguyên và số thập phân
+ return num.toLocaleString('vi-VN', { maximumFractionDigits: 2 });
+}
+
+
+
+
+// ===================== HỦY PHIẾU =====================
+function huyPhieu(){if(confirm("Bạn có chắc chắn muốn hủy phiếu?")) location.href="/nhapkho/";}
+
+
+
+// ===================== XỬ LÝ FORM TRƯỚC KHI GỬI =====================
+document.getElementById('phieuForm').addEventListener('submit', function(e){
+ const numericFields = ['don_gia','so_luong','chiet_khau','thanh_tien'];
+ document.querySelectorAll('#hangTable tbody tr').forEach(row=>{
+   numericFields.forEach(name=>{
+     const input = row.querySelector(`[name="${name}"]`);
+     if(input) input.value = cleanNumber(input.value);
+   });
+ });
+});
+
+
+// FORMAT SỐ NGAY KHI LOAD TRANG
+window.addEventListener('DOMContentLoaded', function(){
+ document.querySelectorAll('[name="don_gia"]').forEach(input=>{
+   input.value = formatNumber(cleanNumber(input.value)); // loại bỏ %, . rồi định dạng lại
+ });
+ document.querySelectorAll('[name="so_luong"]').forEach(input=>{
+   input.value = formatNumber(cleanNumber(input.value));
+ });
+ document.querySelectorAll('[name="chiet_khau"]').forEach(input=>{
+   input.value = formatPercent(cleanNumber(input.value));
+ });
+ document.querySelectorAll('[name="thanh_tien"]').forEach(input=>{
+   input.value = formatNumber(cleanNumber(input.value)); // tổng tiền
+ });
+
+
+ capNhatSTT();
+ tinhTong();
+});
+
+
+// Popup file Excel
+document.getElementById('btnThemFile').addEventListener('click',()=>{document.getElementById('popupFile').style.display='block';});
+function closePopup(){document.getElementById('popupFile').style.display='none';}
+document.getElementById('fileInput').addEventListener('change',function(e){if(e.target.files[0]){readExcelFile(e.target.files[0]); e.target.value='';}});
+const dropArea=document.getElementById('dropArea');
+['dragenter','dragover','dragleave','drop'].forEach(eventName=>dropArea.addEventListener(eventName,preventDefaults,false));
+['dragenter','dragover'].forEach(eventName=>dropArea.addEventListener(eventName,highlight,false));
+['dragleave','drop'].forEach(eventName=>dropArea.addEventListener(eventName,unhighlight,false));
+dropArea.addEventListener('drop',handleDrop,false);
+function preventDefaults(e){e.preventDefault(); e.stopPropagation();}
+function highlight(){dropArea.style.borderColor='#f45a8d'; dropArea.style.backgroundColor='#fce4ec';}
+function unhighlight(){dropArea.style.borderColor='#ccc'; dropArea.style.backgroundColor='#fff';}
+function handleDrop(e){const dt=e.dataTransfer; if(dt.files.length>0) readExcelFile(dt.files[0]);}
+
+
+function readExcelFile(file){
+ const reader=new FileReader();
+ reader.onload=function(e){
+   try{
+     const data=new Uint8Array(e.target.result);
+     const workbook=XLSX.read(data,{type:'array'});
+     const firstSheet=workbook.Sheets[workbook.SheetNames[0]];
+     const jsonData=XLSX.utils.sheet_to_json(firstSheet,{header:['STT','ten_hang','ma_hang','don_vi','don_gia','so_luong','chiet_khau']});
+     jsonData.slice(1).forEach(row=>{themDongTuFile(row.ten_hang,row.ma_hang,row.don_vi,row.don_gia,row.so_luong,row.chiet_khau);});
+     closePopup();
+   }catch(err){alert("Có lỗi khi đọc file Excel."); console.error(err);}
+ };
+ reader.readAsArrayBuffer(file);
+}
+
+
+// ===================== HÀM THÊM TỪ FILE (ĐÃ SỬA HOÀN TOÀN) =====================
+function themDongTuFile(ten,ma,dv,dg,sl,ck){
+  const tbody=document.querySelector('#hangTable tbody');
+  const row=document.createElement('tr');
+  const formattedDg=dg?formatNumber(cleanNumber(dg)):'';
+  const formattedCk=ck?`${cleanNumber(ck)}%`:'';
+  const formattedSl=sl||'';
+
+  // SỬ DỤNG THẺ <INPUT> VÀ THÊM THÙNG RÁC
+  row.innerHTML=`
+    <td></td>
+    <td><input type="text" name="ten_hang" value="${ten||''}"></td>
+    <td><input type="text" name="ma_hang" value="${ma||''}"></td>
+    <td><input type="text" name="don_vi" value="${dv||''}"></td>
+    <td><input type="text" name="don_gia" value="${formattedDg}" onblur="this.value=formatNumber(this.value)" oninput="tinhThanhTien(this)"></td>
+    <td><input type="text" name="so_luong" value="${formattedSl}" oninput="tinhThanhTien(this)"></td>
+    <td><input type="text" name="chiet_khau" value="${formattedCk}" onblur="this.value=formatPercent(this.value)" oninput="tinhThanhTien(this)"></td>
+    <td><input type="text" name="thanh_tien" readonly></td>
+    <td>
+        <button class="btn-del" type="button" onclick="xoaDong(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+    </td>
+  `;
+
+  tbody.appendChild(row);
+  capNhatSTT(); // CẬP NHẬT STT
+  if (row.querySelector('[name="don_gia"]')) {
+      tinhThanhTien(row.querySelector('[name="don_gia"]'));
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ if(document.querySelectorAll('#hangTable tbody tr').length===0) themDong();
+ document.querySelectorAll('#hangTable tbody tr').forEach(row=>{addInputListeners(row); tinhThanhTien(row);});
+});
+</script>
+{% endblock %}
+

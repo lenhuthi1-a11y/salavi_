@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Quản lý kho SALAVI{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'Chucnang/css/style.css' %}">
+</head>
+<body>
+<header>
+  <img src="{% static 'Chucnang/img/logo.jpg' %}" alt="Logo" class="logo">
+  <h1>QUẢN LÝ KHO HÀNG SALAVI</h1>
+
+  <!-- ✅ Giữ nguyên phần user name -->
+  <div class="user">
+    {{ user.get_full_name }}
+  </div>
+
+  <!-- ❌ Đã xóa phần thông báo và đăng xuất -->
+</header>
+
+<!-- Thanh điều hướng -->
+<nav>
+    <a href="#">TỔNG QUAN</a>
+    <a href="#">DANH MỤC</a>
+    <a href="#">XUẤT KHO</a>  <!-- Hồng nhạt ở XUẤT KHO -->
+    <a href="#" class="active">NHẬP KHO</a>
+    <a href="#">BÁO CÁO</a>
+</nav>
+
+<!-- Nội dung chính -->
+<main>
+  {% block content %}
+  {% endblock %}
+</main>
+
+</body>
+</html>

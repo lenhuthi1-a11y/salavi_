@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+
+{% block title %}NHẬP KHO{% endblock %}
+
+
+{% block content %}
+<div class="list-container">
+ <div class="header-box">
+     <h2 style="font-size: 1em; margin: 0; font-weight: 500; letter-spacing: 1px;color: white">NHẬP KHO</h2>
+
+ </div>
+</div>
+
+
+<style>
+ body {
+   font-family:  'Poppins', sans-serif;
+   margin: 30px;
+   background: #fff;
+ }
+
+ h2 {
+   color: #f45a8d;
+   margin-bottom: 20px;
+ }
+
+
+ .search-container {
+   background-color: #fff;
+   padding: 20px;
+   border: 1px solid #ddd;
+   border-radius: 10px;
+   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+   margin-bottom: 25px;
+ }
+
+
+ .row {
+   display: flex;
+   gap: 15px;
+   align-items: center;
+   margin-bottom: 15px;
+   flex-wrap: wrap;
+ }
+
+
+ label {
+   font-weight: 600;
+   margin-right: 5px;
+ }
+
+
+ input, select {
+   padding: 8px;
+   border-radius: 5px;
+   border: 1px solid #ddd;
+   background-color: #f5f5f5;
+ }
+
+
+ button {
+   background-color: #f45a8d;
+   color: white;
+   border: none;
+   padding: 9px 18px;
+   border-radius: 6px;
+   font-weight: bold;
+   cursor: pointer;
+ }
+
+
+ button:hover {
+   background-color: #e04a7d;
+ }
+
+
+ table {
+   /* ĐÃ SỬA: Giảm chiều rộng tối đa và căn giữa */
+   width: 1000px; /* Hoặc max-width: 900px */
+   margin: 20px auto;
+
+   border-collapse: collapse;
+   border-radius: 0; /* KHÔNG BO GÓC */
+   overflow: hidden;
+   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+ }
+
+
+ th, td {
+   border: 1px solid #ddd;
+   padding: 10px 12px;
+   text-align: center;
+}
+
+ th {
+   background-color: #f45a8d;
+   color: white;
+   font-weight: bold;
+   text-transform: none; /* Thêm dòng này */
+ }
+
+
+ tr:nth-child(even) {
+   background-color: #f9f9f9;
+ }
+
+
+ .action-icons {
+   display: flex;
+   justify-content: center;
+   gap: 10px;
+ }
+
+
+ .icon-btn {
+   cursor: pointer;
+   border: none;
+   background: none;
+   font-size: 18px;
+ }
+
+
+ .icon-btn.edit {
+   color: #007bff;
+ }
+
+
+ .icon-btn.delete {
+   color: #dc3545;
+ }
+
+
+ .create-btn-container {
+   /* ĐÃ SỬA: Dùng max-width và margin để căn chỉnh theo khối tìm kiếm */
+   max-width: 850px; /* Bằng với max-width của .search-container */
+   margin: 0 0 15px 250px; /* Bỏ auto và căn lề trái (margin-left: 0) */
+   display: flex;
+   justify-content: flex-end;
+   margin-bottom: 15px;
+ }
+
+
+ .create-btn {
+   display: inline-block;
+   background: linear-gradient(135deg, #ff4da6, #ff85b3);
+   color: #fff;
+   text-decoration: none;
+   padding: 10px 20px;
+   border-radius: 25px;
+   font-weight: bold;
+   border: none;
+   cursor: pointer;
+   transition: 0.3s ease;
+   box-shadow: 0 3px 8px rgba(255, 77, 166, 0.3);
+ }
+
+
+ .create-btn:hover {
+   background: linear-gradient(135deg, #ff3385, #ff6fa1);
+   transform: scale(1.05);
+   box-shadow: 0 5px 12px rgba(255, 77, 166, 0.5);
+ }
+
+
+/* KHỐI BAO NGOÀI CỦA TÌM KIẾM */
+ .search-container {
+   max-width: 850px; /* Chiều rộng lớn, căn giữa */
+   margin-left: auto;
+   margin-right: auto;
+   padding: 20px;
+   position: relative;
+   border: 1px solid #ddd;
+   border-radius: 10px;
+   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+   margin-bottom: 25px;
+ }
+
+
+ /* Bố cục Flexbox chính cho các hàng */
+ .search-flex-row {
+   display: flex;
+   gap: 20px;
+   align-items: flex-end; /* Căn chỉnh các item theo đáy */
+   flex-wrap: wrap;
+ }
+ .search-flex-row.row-1 {
+     margin-bottom: 15px; /* Khoảng cách giữa Hàng 1 và Hàng 2 */
+ }
+ .search-flex-row.row-2 {
+     margin-bottom: 0;
+ }
+/* Mã phiếu, Nguồn nhập chiếm 50% */
+ .search-item.item-flex-50 {
+     width: calc(50% - 10px);
+     flex: 0 0 auto;
+     min-width: 250px;
+ }
+
+ /* TẠO LỚP MỚI: Từ ngày, Đến ngày chiếm 40% */
+ .search-item.item-flex-40 {
+     width: calc(40% - 10px);
+     flex: 0 0 auto;
+     min-width: 150px;
+ }
+
+ /* Định dạng chung cho Label và Input */
+ .search-item {
+   display: flex;
+   flex-direction: column;
+ }
+ .search-item label {
+   font-weight: 600;
+   margin-bottom: 5px;
+   margin-right: 0;
+ }
+ .search-item input, .search-item select {
+   width: 100%;
+   padding: 8px;
+   box-sizing: border-box;
+   border-radius: 4px;
+   background-color: #f5f5f5;
+ }
+
+
+/* --- NÚT TÌM KIẾM (Đưa xuống hàng riêng và căn phải) --- */
+ .search-btn {
+
+   /* Giữ nguyên định dạng */
+   padding: 9px 18px;
+   background-color: #f45a8d;
+   color: white;
+   border: none;
+   border-radius: 6px;
+   cursor: pointer;
+   font-weight: bold;
+ }
+
+ /* Thêm clearfix */
+ .clearfix::after {
+     content: "";
+     display: table;
+     clear: both;
+ }
+
+
+ /* --- MÀU HỒNG CHO ICON LỊCH --- */
+ input[type="date"]::-webkit-calendar-picker-indicator {
+   filter: invert(36%) sepia(85%) saturate(3029%) hue-rotate(320deg) brightness(101%) contrast(97%);
+   cursor: pointer;
+ }
+</style>
+<h2></h2>
+<div class="search-container">
+ <form method="get" action="{% url 'nhapkho' %}">
+   <div class="search-flex-row row-1">
+     <div class="search-item item-flex-50">
+       <label>Mã phiếu</label>
+       <input type="text" name="ma_phieu" placeholder="Nhập mã phiếu" value="{{ request.GET.ma_phieu }}">
+     </div>
+     <div class="search-item item-flex-50">
+       <label>Nguồn nhập</label>
+       <input type="text" name="nguon_nhap" placeholder="Nguồn nhập" value="{{ request.GET.nguon_nhap }}">
+     </div>
+   </div>
+
+   <div class="search-flex-row row-2">
+     <div class="search-item item-flex-40"> <label>Từ ngày</label>
+       <input type="date" name="tu_ngay" value="{{ request.GET.tu_ngay }}">
+     </div>
+     <div class="search-item item-flex-40"> <label>Đến ngày</label>
+       <input type="date" name="den_ngay" value="{{ request.GET.den_ngay }}">
+     </div>
+
+     <button type="submit" class="search-btn">Tìm kiếm 🔍</button>
+   </div>
+
+   </form>
+</div>
+
+
+
+
+
+<div class="create-btn-container">
+ <a href="{% url 'tao_phieu_nhap' %}" class="create-btn">+ Tạo phiếu nhập kho</a>
+</div>
+
+
+<table>
+ <thead>
+   <tr>
+     <th>STT</th>
+     <th>Mã phiếu nhập</th>
+     <th>Nguồn nhập</th>
+     <th>Tổng tiền</th>
+     <th>Ngày nhập</th>
+     <th>Thao tác</th>
+   </tr>
+ </thead>
+ <tbody>
+   {% for phieu in danh_sach %}
+     <tr>
+       <td>{{ forloop.counter }}</td>
+       <td>{{ phieu.ma_phieu }}</td>
+       <td>{{ phieu.nguon_nhap }}</td>
+       <td>{{ phieu.tong_tien_str }}</td>
+       <td>{{ phieu.ngay_nhap|date:"d/m/Y H:i" }}</td>
+       <td>
+         <div class="action-icons">
+           <a href="{% url 'chi_tiet_phieu_nhap' phieu.id %}" class="icon-btn edit" title="Sửa">&#9998;</a>
+           <a href="{% url 'xoa_phieu' phieu.id %}" class="icon-btn delete" title="Xóa"
+           onclick="return confirm('Bạn có chắc chắn muốn xóa không?')">&#128465;</a>
+         </div>
+       </td>
+     </tr>
+   {% empty %}
+     <tr>
+       <td colspan="6" style="text-align:center; color:#888;">(Chưa có dữ liệu)</td>
+     </tr>
+   {% endfor %}
+ </tbody>
+</table>
+{% endblock %}
+
